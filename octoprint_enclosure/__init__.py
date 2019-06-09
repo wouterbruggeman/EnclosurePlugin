@@ -25,15 +25,18 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
                         sensorUpdateInterval=30
 		)
         
-        def get_template_vars(self):
-            return dict(sensorUpdateInterval=self._settings.get(["sensorUpdateInterval"]))
-
 	def get_assets(self):
 		return dict(
 			js=["js/enclosure.js"],
 			css=["css/enclosure.css"],
 			less=["less/enclosure.less"]
 		)
+
+        def get_template_configs(self):
+            return [
+                dict(type="navbar", custom_bindings=False),
+                dict(type="settings", custom_bindings=False)
+            ]
 
 	def get_update_information(self):
 		# Define the configuration for your plugin to use with the Software Update
