@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from octoprint.util import RepeatedTimer
 from random import randint
+from .hardware import Hardware
 
 import octoprint.plugin
 
@@ -12,29 +13,33 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
 
         def __init__(self):
             self._sensorUpdateTimer = None
-
+            self._hardware = None
+        
         def updateSensorValues(self):
-            number = randint(0,9)
+            hum, temp = self._hardware.getSensorValues()
             self._plugin_manager.send_plugin_message(self._identifier, 
                 dict(
-                    temp=number,
-                    humidity=(number*2)
+                    temperature=temp,
+                    humidity=hum
                 )
             )
+            self._logger.info(temp)
+            self._logger.info(hum)
             
         def startTimer(self, interval):
-            self._sensorUpdateTimer = RepeatedTimer(int(interval), self.updateSensorValues, None, None, True)
+            self._sensorUpdateTimer = RepeatedTimer(interval, self.updateSensorValues, None, None, True)
             self._sensorUpdateTimer.start()
 
         def on_after_startup(self):
-            self._logger.info("Enclosure plugin started!")
-            self._logger.info("Sensor update interval: %s" % self._settings.get(['sensorUpdateInterval']))
+            self._hardware = Hardware(int(self._settings.get(['sensorPin'])))
+            self.startTimer(int(self._settings.get(['sensorUpdateInterval'])))
 
-            self.startTimer(self._settings.get(['sensorUpdateInterval']))
+            self._logger.info("Enclosure plugin started!")
 
 	def get_settings_defaults(self):
 		return dict(
-                        sensorUpdateInterval=5
+                        sensorUpdateInterval=5,
+                        sensorPin=23
 		)
         
 	def get_assets(self):
@@ -47,6 +52,7 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
         def get_template_configs(self):
             return [
                 dict(type="navbar", custom_bindings=False),
+                dict(type="sidebar", custom_bindings=False),
                 dict(type="settings", custom_bindings=False)
             ]
 

@@ -17,7 +17,7 @@ $(function() {
 		//This function is executed when the backend sends a message
 		self.onDataUpdaterPluginMessage = function(plugin, data){
 			if(plugin == "enclosure"){
-				self.temperature(data.temp);
+				self.temperature(data.temperature);
 				self.humidity(data.humidity);
 			}
 		}
