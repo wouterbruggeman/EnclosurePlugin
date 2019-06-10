@@ -10,16 +10,38 @@ $(function() {
 	
 		self.settings = parameters[0];
 
+		self.pluginName = "enclosure";
+
 		self.temperature = ko.observable();
 		self.humidity = ko.observable();
-		
+		self.ledState = ko.observable();
 
 		//This function is executed when the backend sends a message
 		self.onDataUpdaterPluginMessage = function(plugin, data){
-			if(plugin == "enclosure"){
+			if(plugin == self.pluginName){
 				self.temperature(data.temperature);
 				self.humidity(data.humidity);
+				if(data.ledState){
+					self.ledState("On");
+				}else{
+					self.ledState("Off");
+				}
 			}
+		}
+		
+		self.toggleLedState = function(){
+			$.ajax({
+				url: self.buildPluginUrl("/toggleLedState"),
+				type: "GET",
+				dataType: "json",
+				success: function(result){
+					$("#ledState").html(result);
+				};
+                    	});
+		}
+
+		self.buildPluginUrl = function(path){
+			return window.PLUGIN_BASEURL + self.pluginName + path;
 		}
 
 	}

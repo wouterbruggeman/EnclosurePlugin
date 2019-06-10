@@ -9,7 +9,8 @@ import octoprint.plugin
 class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
                       octoprint.plugin.AssetPlugin,
                       octoprint.plugin.TemplatePlugin,
-                      octoprint.plugin.StartupPlugin):
+                      octoprint.plugin.StartupPlugin,
+                      octoprint.plugin.BlueprintPlugin):
 
         def __init__(self):
             self._sensorUpdateTimer = None
@@ -17,13 +18,22 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
         
         def updateSensorValues(self):
             hum, temp = self._hardware.getSensorValues()
+            led = self._hardware.getLedState()
             self._plugin_manager.send_plugin_message(self._identifier, 
                 dict(
                     temperature=temp,
-                    humidity=hum
+                    humidity=hum,
+                    ledState=led
                 )
             )
+            self._logger.info(hum)
+            self._logger.info(temp)
+            self._logger.info("Sensor Update!")
+
+        @octoprint.plugin.BlueprintPlugin.route("/toggleLedState", methods=["GET"])
+        def toggleLedState(self):
             self._hardware.setLedState(~self._hardware.getLedState())
+            return str(self._hardware.getLedState())
             
         def startTimer(self, interval):
             self._sensorUpdateTimer = RepeatedTimer(interval, self.updateSensorValues, None, None, True)

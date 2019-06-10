@@ -1,4 +1,11 @@
 Temperature:
-<span data-bind="html: temperature"></span><br>
+<span data-bind="html: temperature"></span>°C
+<br>
 Humidity:
-<span data-bind="html: humidity"></span><br>
+<span data-bind="html: humidity"></span>%
+<br>
+<hr>
+Led state:
+<span data-bind="html: ledState" id="ledState"></span>
+<br>
+<button class="btn btn-primary" type="button" data-bind="click: toggleLedState">Toggle led</button>
