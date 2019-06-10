@@ -23,23 +23,26 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
                     humidity=hum
                 )
             )
-            self._logger.info(temp)
-            self._logger.info(hum)
+            self._hardware.setLedState(~self._hardware.getLedState())
             
         def startTimer(self, interval):
             self._sensorUpdateTimer = RepeatedTimer(interval, self.updateSensorValues, None, None, True)
             self._sensorUpdateTimer.start()
 
         def on_after_startup(self):
-            self._hardware = Hardware(int(self._settings.get(['sensorPin'])))
-            self.startTimer(int(self._settings.get(['sensorUpdateInterval'])))
+            self._hardware = Hardware(
+                int(self._settings.get(['sensorPin'])),
+                int(self._settings.get(['ledPin']))
+            )
 
+            self.startTimer(int(self._settings.get(['sensorUpdateInterval'])))
             self._logger.info("Enclosure plugin started!")
 
 	def get_settings_defaults(self):
 		return dict(
                         sensorUpdateInterval=5,
-                        sensorPin=23
+                        sensorPin=23,
+                        ledPin=24
 		)
         
 	def get_assets(self):
