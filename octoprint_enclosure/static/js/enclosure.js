@@ -27,6 +27,6 @@ $(function() {
 	OCTOPRINT_VIEWMODELS.push({
 		construct: EnclosureViewModel,
 		dependencies: ["settingsViewModel"],
-		elements: ["#settings_plugin_enclosure", "#navbar_plugin_enclosure"]
+		elements: ["#settings_plugin_enclosure", "#navbar_plugin_enclosure", "#sidebar_plugin_enclosure"]
 	});
 });

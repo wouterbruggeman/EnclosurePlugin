@@ -15,7 +15,6 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
 
         def updateSensorValues(self):
             number = randint(0,9)
-            self._logger.info(str(number))
             self._plugin_manager.send_plugin_message(self._identifier, 
                 dict(
                     temp=number,
@@ -30,11 +29,12 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
         def on_after_startup(self):
             self._logger.info("Enclosure plugin started!")
             self._logger.info("Sensor update interval: %s" % self._settings.get(['sensorUpdateInterval']))
+
             self.startTimer(self._settings.get(['sensorUpdateInterval']))
 
 	def get_settings_defaults(self):
 		return dict(
-                        sensorUpdateInterval=30.0
+                        sensorUpdateInterval=5
 		)
         
 	def get_assets(self):
