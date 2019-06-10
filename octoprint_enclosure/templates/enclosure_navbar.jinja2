@@ -1,3 +1,6 @@
 <div class="navbar-text">
-	<span data-bind="html: settings.settings.plugins.enclosure.sensorUpdateInterval"></span
+	Temp:
+	<span data-bind="attr: { title: 'Enclosure Temperature' }, html: temperature"></span>
+	Humidity:
+	<span data-bind="attr: { title: 'Enclosure humidity' }, html: humidity"></span>
 </div>

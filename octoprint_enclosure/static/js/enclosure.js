@@ -5,25 +5,28 @@
  * License: AGPLv3
  */
 $(function() {
-    function EnclosureViewModel(parameters) {
-        var self = this;
+	function EnclosureViewModel(parameters) {
+		var self = this;
+	
+		self.settings = parameters[0];
 
-        // assign the injected parameters, e.g.:
-        // self.loginStateViewModel = parameters[0];
-        // self.settingsViewModel = parameters[1];
+		self.temperature = ko.observable();
+		self.humidity = ko.observable();
+		
 
-        // TODO: Implement your plugin's view model here.
-    }
+		//This function is executed when the backend sends a message
+		self.onDataUpdaterPluginMessage = function(plugin, data){
+			if(plugin == "enclosure"){
+				self.temperature(data.temp);
+				self.humidity(data.humidity);
+			}
+		}
 
-    /* view model class, parameters for constructor, container to bind to
-     * Please see http://docs.octoprint.org/en/master/plugins/viewmodels.html#registering-custom-viewmodels for more details
-     * and a full list of the available options.
-     */
-    OCTOPRINT_VIEWMODELS.push({
-        construct: EnclosureViewModel,
-        // ViewModels your plugin depends on, e.g. loginStateViewModel, settingsViewModel, ...
-        dependencies: [ /* "loginStateViewModel", "settingsViewModel" */ ],
-        // Elements to bind to, e.g. #settings_plugin_enclosure, #tab_plugin_enclosure, ...
-        elements: [ /* ... */ ]
-    });
+	}
+
+	OCTOPRINT_VIEWMODELS.push({
+		construct: EnclosureViewModel,
+		dependencies: ["settingsViewModel"],
+		elements: ["#settings_plugin_enclosure", "#navbar_plugin_enclosure"]
+	});
 });

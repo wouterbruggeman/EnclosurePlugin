@@ -16,7 +16,13 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
         def updateSensorValues(self):
             number = randint(0,9)
             self._logger.info(str(number))
-
+            self._plugin_manager.send_plugin_message(self._identifier, 
+                dict(
+                    temp=number,
+                    humidity=(number*2)
+                )
+            )
+            
         def startTimer(self, interval):
             self._sensorUpdateTimer = RepeatedTimer(int(interval), self.updateSensorValues, None, None, True)
             self._sensorUpdateTimer.start()
