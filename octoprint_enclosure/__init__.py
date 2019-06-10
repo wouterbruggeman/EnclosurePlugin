@@ -1,13 +1,7 @@
 # coding=utf-8
 from __future__ import absolute_import
-
-### (Don't forget to remove me)
-# This is a basic skeleton for your plugin's __init__.py. You probably want to adjust the class name of your plugin
-# as well as the plugin mixins it's subclassing from. This is really just a basic skeleton to get you started,
-# defining your plugin as a template plugin, settings and asset plugin. Feel free to add or remove mixins
-# as necessary.
-#
-# Take a look at the documentation on what other plugin mixins are available.
+from octoprint.util import RepeatedTimer
+from random import randint
 
 import octoprint.plugin
 
@@ -16,13 +10,25 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
                       octoprint.plugin.TemplatePlugin,
                       octoprint.plugin.StartupPlugin):
 
+        def __init__(self):
+            self._sensorUpdateTimer = None
+
+        def updateSensorValues(self):
+            number = randint(0,9)
+            self._logger.info(str(number))
+
+        def startTimer(self, interval):
+            self._sensorUpdateTimer = RepeatedTimer(int(interval), self.updateSensorValues, None, None, True)
+            self._sensorUpdateTimer.start()
+
         def on_after_startup(self):
             self._logger.info("Enclosure plugin started!")
             self._logger.info("Sensor update interval: %s" % self._settings.get(['sensorUpdateInterval']))
-    
+            self.startTimer(self._settings.get(['sensorUpdateInterval']))
+
 	def get_settings_defaults(self):
 		return dict(
-                        sensorUpdateInterval=30
+                        sensorUpdateInterval=30.0
 		)
         
 	def get_assets(self):
