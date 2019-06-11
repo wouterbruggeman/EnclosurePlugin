@@ -1,7 +1,6 @@
 # coding=utf-8
 from __future__ import absolute_import
 from octoprint.util import RepeatedTimer
-from random import randint
 from .hardware import Hardware
 
 import octoprint.plugin
@@ -10,15 +9,21 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
                       octoprint.plugin.AssetPlugin,
                       octoprint.plugin.TemplatePlugin,
                       octoprint.plugin.StartupPlugin,
-                      octoprint.plugin.BlueprintPlugin):
+                      octoprint.plugin.BlueprintPlugin,
+                      octoprint.plugin.EventHandlerPlugin):
 
         def __init__(self):
             self._sensorUpdateTimer = None
             self._hardware = None
         
         def updateSensorValues(self):
+            #Receive the sensor values
             hum, temp = self._hardware.getSensorValues()
+
+            #Receive the ledstate
             led = self._hardware.getLedState()
+
+            #Send data to the frontend
             self._plugin_manager.send_plugin_message(self._identifier, 
                 dict(
                     temperature=temp,
@@ -29,30 +34,62 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
 
         @octoprint.plugin.BlueprintPlugin.route("/toggleLedState", methods=["GET"])
         def toggleLedState(self):
+            #Toggle the led state
             self._hardware.setLedState(~self._hardware.getLedState())
+            
+            #Update the frontend
             self.updateSensorValues()
             return ""
             
         def startTimer(self, interval):
+            #Create and start the timer
             self._sensorUpdateTimer = RepeatedTimer(interval, self.updateSensorValues, None, None, True)
             self._sensorUpdateTimer.start()
 
         def on_after_startup(self):
+            #Create the hardware object
             self._hardware = Hardware(
                 int(self._settings.get(['sensorPin'])),
                 int(self._settings.get(['ledPin'])),
                 int(self._settings.get(['buttonPin']))
             )
+            #Turn on or off the leds, depending on the value in the settings
+            self._hardware.setLedState(self._settings.get(['ledsOnAtStartup']))
 
+            #Start the sensor timer
             self.startTimer(int(self._settings.get(['sensorUpdateInterval'])))
-            self._logger.info("Enclosure plugin started!")
+
+        def on_event(self, event, payload):
+            #if a client connected
+            if(event == "ClientOpened"):
+                #Update the sensor values on the client side
+                self.updateSensorValues()
+            
+            #If the print is started and the leds have to be turned on
+            elif((event == "PrintStarted") and self._settings.get(['ledsOnAtPrintStart'])):
+                self._hardware.setLedState(True)
+            
+            #If the timelapse has started and the leds have to be turned on
+            elif((event == "CaptureStart") and self._settings.get(['ledsOnAtTimelapseStart'])):
+                self._hardware.setLedState(True)
+
+            #If the print has ended (failed or just done) and the leds have to be turned off
+            elif(((event == "PrintFailed") or (event == "PrintDone")) and self._settings.get(['ledsOffAtPrintEnd'])):
+                self._hardware.setLedState(False)
+            
+
+
 
 	def get_settings_defaults(self):
 		return dict(
                         sensorUpdateInterval=5,
                         sensorPin=23,
                         ledPin=24,
-                        buttonPin=25
+                        buttonPin=25,
+                        ledsOnAtStartup=False,
+                        ledsOnAtTimelapseStart=True,
+                        ledsOnAtPrintStart=False,
+                        ledsOffAtPrintEnd=True,
 		)
         
 	def get_assets(self):
@@ -70,24 +107,21 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
             ]
 
 	def get_update_information(self):
-		# Define the configuration for your plugin to use with the Software Update
-		# Plugin here. See https://github.com/foosel/OctoPrint/wiki/Plugin:-Software-Update
-		# for details.
-		return dict(
-			enclosure=dict(
-				displayName="Enclosure Plugin",
-				displayVersion=self._plugin_version,
+            return dict(
+                enclosure=dict(
+                    displayName="Enclosure Plugin",
+                    displayVersion=self._plugin_version,
 
-				# version check: github repository
-				type="github_release",
-				user="wouterbruggeman",
-				repo="EnclosurePlugin",
-				current=self._plugin_version,
+                    # version check: github repository
+                    type="github_release",
+                    user="wouterbruggeman",
+                    repo="EnclosurePlugin",
+                    current=self._plugin_version,
 
-				# update method: pip
-				pip="https://github.com/wouterbruggeman/EnclosurePlugin/archive/{target_version}.zip"
-			)
-		)
+                    # update method: pip
+                    pip="https://github.com/wouterbruggeman/EnclosurePlugin/archive/{target_version}.zip"
+                )
+            )
 
 
 __plugin_name__ = "Enclosure Plugin"
