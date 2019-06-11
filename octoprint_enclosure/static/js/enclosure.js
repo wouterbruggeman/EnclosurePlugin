@@ -15,6 +15,7 @@ $(function() {
 		self.temperature = ko.observable();
 		self.humidity = ko.observable();
 		self.ledState = ko.observable();
+		self.ledBtnText = ko.observable();
 
 		//This function is executed when the backend sends a message
 		self.onDataUpdaterPluginMessage = function(plugin, data){
@@ -23,8 +24,10 @@ $(function() {
 				self.humidity(data.humidity);
 				if(data.ledState){
 					self.ledState("On");
+					self.ledBtnText("Turn led off");
 				}else{
 					self.ledState("Off");
+					self.ledBtnText("Turn led on");
 				}
 			}
 		}
@@ -33,10 +36,7 @@ $(function() {
 			$.ajax({
 				url: self.buildPluginUrl("/toggleLedState"),
 				type: "GET",
-				dataType: "json",
-				success: function(result){
-					$("#ledState").html(result);
-				};
+				dataType: "json"
                     	});
 		}
 

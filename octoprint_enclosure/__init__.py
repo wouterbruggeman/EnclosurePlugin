@@ -33,7 +33,8 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
         @octoprint.plugin.BlueprintPlugin.route("/toggleLedState", methods=["GET"])
         def toggleLedState(self):
             self._hardware.setLedState(~self._hardware.getLedState())
-            return str(self._hardware.getLedState())
+            self.updateSensorValues()
+            return ""
             
         def startTimer(self, interval):
             self._sensorUpdateTimer = RepeatedTimer(interval, self.updateSensorValues, None, None, True)
@@ -90,9 +91,6 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
 		)
 
 
-# If you want your plugin to be registered within OctoPrint under a different name than what you defined in setup.py
-# ("OctoPrint-PluginSkeleton"), you may define that here. Same goes for the other metadata derived from setup.py that
-# can be overwritten via __plugin_xyz__ control properties. See the documentation for that.
 __plugin_name__ = "Enclosure Plugin"
 
 def __plugin_load__():
