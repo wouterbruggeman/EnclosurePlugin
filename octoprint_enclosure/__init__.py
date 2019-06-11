@@ -43,7 +43,8 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
         def on_after_startup(self):
             self._hardware = Hardware(
                 int(self._settings.get(['sensorPin'])),
-                int(self._settings.get(['ledPin']))
+                int(self._settings.get(['ledPin'])),
+                int(self._settings.get(['buttonPin']))
             )
 
             self.startTimer(int(self._settings.get(['sensorUpdateInterval'])))
@@ -53,7 +54,8 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
 		return dict(
                         sensorUpdateInterval=5,
                         sensorPin=23,
-                        ledPin=24
+                        ledPin=24,
+                        buttonPin=25
 		)
         
 	def get_assets(self):
