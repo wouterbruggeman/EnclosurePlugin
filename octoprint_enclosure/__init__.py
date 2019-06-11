@@ -26,9 +26,6 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
                     ledState=led
                 )
             )
-            self._logger.info(hum)
-            self._logger.info(temp)
-            self._logger.info("Sensor Update!")
 
         @octoprint.plugin.BlueprintPlugin.route("/toggleLedState", methods=["GET"])
         def toggleLedState(self):

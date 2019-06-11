@@ -28,5 +28,5 @@ class Hardware():
     def getLedState(self):
         return self._ledState
 
-    def buttonPressed(self):
+    def buttonPressed(self, pin):
         self.setLedState(~self._ledState);
