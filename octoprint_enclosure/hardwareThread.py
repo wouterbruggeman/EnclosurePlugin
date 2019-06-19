@@ -1,14 +1,11 @@
 import Adafruit_DHT
 import RPi.GPIO as GPIO
-
-import threading
+import threading, time
 
 class HardwareThread(threading.Thread):
 
-    def __init__(self, plugin, sensorPin, ledPin, buttonPin, sensorUpdateInterval):
-        threading.Thread.__init__(self)
-
-        self._sensorUpdateInterval = sensorUpdateInterval
+    def __init__(self, plugin, sensorPin, ledPin, buttonPin):
+	threading.Thread.__init__(self)
         self._plugin = plugin
         self._running = True
         
@@ -36,8 +33,10 @@ class HardwareThread(threading.Thread):
 
     def run(self):
         while(self._running):
+            #time.sleep(float(self._plugin._settings.get(['sensorUpdateInterval'])))
+            time.sleep(5)
             self._updateSensorValues()
-
+    
     def stop(self):
         self._running = False
 
@@ -45,12 +44,17 @@ class HardwareThread(threading.Thread):
         self.setLedState(~self._ledState);
         
     def _updateSensorValues(self):
+        self._plugin._logger.info("Checking for new data from sensor")
+        #newValues = Adafruit_DHT.read(self._sensor, self._sensorPin)
         newValues = Adafruit_DHT.read_retry(self._sensor, self._sensorPin)
         if(newValues != (None, None)):
+            self._plugin._logger.info("Got a new sensor value")
             self._sensorValues = newValues
+        else:
+            self._plugin._logger.info("Received nothing")
 
-        self._plugin._logger.info(newValues)
-        self._plugin._logger.info("Updated sensor values!")
+    def updateBlocking(self):
+        self._sensorValues = Adafruit_DHT.read_retry(self._sensor, self._sensorPin)
 
     def getSensorValues(self):
         return self._sensorValues

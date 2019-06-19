@@ -3,7 +3,6 @@
 from __future__ import absolute_import
 from octoprint.util import RepeatedTimer
 from .hardwareThread import HardwareThread
-import threading
 
 import octoprint.plugin
 
@@ -11,13 +10,14 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
                       octoprint.plugin.AssetPlugin,
                       octoprint.plugin.TemplatePlugin,
                       octoprint.plugin.StartupPlugin,
-                      octoprint.plugin.BlueprintPlugin,
                       octoprint.plugin.ShutdownPlugin,
+                      octoprint.plugin.BlueprintPlugin,
                       octoprint.plugin.EventHandlerPlugin):
 
         def __init__(self):
-            self._frontendUpdater = None
-            self._hardwareThreadThread = None
+            self._frontendUpdateTimer = None
+            self._sensorUpdateTimer = None
+            self._hardwareThread = None
         
         def updateFrontend(self):
             #Receive the sensor values
@@ -44,32 +44,33 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
             self.updateFrontend()
             return ""
             
-        def startTimer(self, interval):
-            #Create and start the timer
-            self._frontendUpdater = RepeatedTimer(interval, self.updateFrontend, None, None, True)
-            self._frontendUpdater.start()
+        def startTimer(self):
+            frontendInterval = self._settings.get(['frontendUpdateInterval'])
+
+            #Create and start the timers
+            self._frontendUpdateTimer = RepeatedTimer(frontendInterval, self.updateFrontend)
+            self._frontendUpdateTimer.start()
 
         def on_after_startup(self):
-            #Create the HardwareThread
+            #Create the Hardware thread
             self._hardwareThread = HardwareThread(
                 self,
                 int(self._settings.get(['sensorPin'])),
                 int(self._settings.get(['ledPin'])),
-                int(self._settings.get(['buttonPin'])),
-                int(self._settings.get(['sensorUpdateInterval']))
+                int(self._settings.get(['buttonPin']))
             )
-            self._hardwareThread.deamon = True
-            self._hardwareThread.start()
-
             #Turn on or off the leds, depending on the value in the settings
             self._hardwareThread.setLedState(self._settings.get(['ledsOnAtStartup']))
 
-            #Start the sensor timer
-            self.startTimer(int(self._settings.get(['sensorUpdateInterval'])))
+            #Start the timers
+            self.startTimer()
+
+            #Start the thread
+            self._hardwareThread.start()
 
         def shutdown(self):
+            self._frontendUpdateTimer.cancel()
             self._hardwareThread.stop()
-            self._hardwareThread = None
 
         def on_event(self, event, payload):
             #if a client connected
@@ -91,7 +92,8 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
             
 	def get_settings_defaults(self):
 		return dict(
-                        sensorUpdateInterval=5,
+                        sensorUpdateInterval=10,
+                        frontendUpdateInterval=5,
                         sensorPin=23,
                         ledPin=24,
                         buttonPin=25,
