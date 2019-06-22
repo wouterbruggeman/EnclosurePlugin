@@ -6,13 +6,12 @@ dataFile = '/w1_slave'
 
 class HardwareThread(threading.Thread):
 
-    def __init__(self, plugin, sensorPin, ledPin, buttonPin):
+    def __init__(self, plugin, ledPin, buttonPin):
 	threading.Thread.__init__(self)
         self._plugin = plugin
         self._running = True
         
         #Pins etc
-        self._sensorPin = sensorPin
         self._ledPin = ledPin
         self._buttonPin = buttonPin
         
@@ -38,18 +37,20 @@ class HardwareThread(threading.Thread):
     def run(self):
         while(self._running):
             self._updateSensorValues()
-            self._plugin._logger.info(self.getTemperature())
-            #time.sleep(float(self._plugin._settings.get(['sensorUpdateInterval'])))
-            time.sleep(5)
+            time.sleep(float(self._plugin._settings.get(['sensorUpdateInterval'])))
     
     def _readTemperatureFile(self):
         #Read the file
-        f = open(baseDir + '28-0116258ec9ee' + dataFile)
+        f = open(baseDir + self._plugin._settings.get(['sensorName']) + dataFile)
         lines = f.readlines()
         f.close()
         return lines
 
     def _updateSensorValues(self):
+        if(not os.path.isfile(baseDir + self._plugin._settings.get(['sensorName']) + dataFile)):
+            self._temperature = "CONFIGURE SENSOR NAME 0"
+            return
+
         lines = self._readTemperatureFile()
 
         #Wait until the last 3 chars are equal to 'YES'
@@ -60,7 +61,7 @@ class HardwareThread(threading.Thread):
         #Find the index of t= in string
         tempPos = lines[1].find('t=')
         if tempPos != -1:
-            self._temperature = float(lines[1][tempPos+2:]) / 1000
+            self._temperature = round(float(lines[1][tempPos+2:]) / 1000, 1)
 
     def _buttonPressed(self, pin):
         self.setLedState(~self._ledState);

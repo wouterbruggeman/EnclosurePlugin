@@ -13,7 +13,6 @@ $(function() {
 		self.pluginName = "enclosure";
 
 		self.temperature = ko.observable();
-		self.humidity = ko.observable();
 		self.ledState = ko.observable();
 		self.ledBtnText = ko.observable();
 
@@ -21,7 +20,6 @@ $(function() {
 		self.onDataUpdaterPluginMessage = function(plugin, data){
 			if(plugin == self.pluginName){
 				self.temperature(data.temperature);
-				self.humidity(data.humidity);
 				if(data.ledState){
 					self.ledState("On");
 					self.ledBtnText("Turn led off");

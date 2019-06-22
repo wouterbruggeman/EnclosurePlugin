@@ -20,9 +20,8 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
             self._hardwareThread = None
         
         def updateFrontend(self):
-            #Receive the sensor values
+            #Receive the temperature
             temp = self._hardwareThread.getTemperature()
-            hum = 0
 
             #Receive the ledstate
             led = self._hardwareThread.getLedState()
@@ -31,7 +30,6 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
             self._plugin_manager.send_plugin_message(self._identifier, 
                 dict(
                     temperature=temp,
-                    humidity=hum,
                     ledState=led
                 )
             )
@@ -56,7 +54,6 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
             #Create the Hardware thread
             self._hardwareThread = HardwareThread(
                 self,
-                int(self._settings.get(['sensorPin'])),
                 int(self._settings.get(['ledPin'])),
                 int(self._settings.get(['buttonPin']))
             )
@@ -93,9 +90,9 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
             
 	def get_settings_defaults(self):
 		return dict(
-                        sensorUpdateInterval=10,
+                        sensorUpdateInterval=30,
                         frontendUpdateInterval=5,
-                        sensorPin=23,
+                        sensorName='',
                         ledPin=24,
                         buttonPin=25,
                         ledsOnAtStartup=False,
