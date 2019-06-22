@@ -21,7 +21,8 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
         
         def updateFrontend(self):
             #Receive the sensor values
-            hum, temp = self._hardwareThread.getSensorValues()
+            temp = self._hardwareThread.getTemperature()
+            hum = 0
 
             #Receive the ledstate
             led = self._hardwareThread.getLedState()

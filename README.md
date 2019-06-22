@@ -11,6 +11,12 @@ or manually using this URL:
 
     https://github.com/wouterbruggeman/EnclosurePlugin/archive/master.zip
 
-## Configuration
-
-**TODO:** Describe your plugin's configuration options (if any).
+After downloading the plugin. Execute the following steps:
+1. Login on your Raspberry pi with ssh.
+2. Enter ``sudo raspi-config`` and go to Advanced Option -> 1-Wire -> Yes. To enable 1-Wire.
+3. Reboot the device and check if the module is started with ``lsmod | grep w1``. If the module is 
+started, skip to 5.
+4. Mount the device with ``sudo modprobe w1_gpio && sudo modprobe w1_therm``
+5.  Configure the device name in the plugin settings in Octoprint. The name of the device can 
+be found with ``ls /sys/bus/w1/devices/`` and should be starting with '28'.
+6. Restart the Octoprint server and everything should be working at this point.
