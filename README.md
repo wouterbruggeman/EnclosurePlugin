@@ -22,7 +22,7 @@ be found with ``ls /sys/bus/w1/devices/`` and should be starting with '28'.
 6. Restart the Octoprint server and everything should be working at this point.
 
 The following circuit has to be build:
-![circuit][https://github.com/wouterbruggeman/EnclosurePlugin/tree/master/schemes/circuit.png]
+![circuit](https://github.com/wouterbruggeman/EnclosurePlugin/tree/master/schemes/circuit.png)
 
 ## Warning
 This program may contain bugs. I (Wouter Bruggeman) am not responsible for anything that happens
