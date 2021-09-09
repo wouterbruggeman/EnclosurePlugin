@@ -1,6 +1,8 @@
 import RPi.GPIO as GPIO
 import os
 
+import random
+
 baseDir = '/sys/bus/w1/devices/'
 dataFile = '/w1_slave'
 
@@ -25,14 +27,8 @@ class HardwareInterface:
         GPIO.setup(button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.add_event_detect(button_pin, GPIO.FALLING, callback=self._buttonPressed, bouncetime=200)
 
-    def update(self):
-        self._updateTemperatureValue()
-
     def getLedState(self):
         return self._ledState
-
-    def getTemperature(self):
-        return self._temperature
 
     def setLedState(self, state):
         self._ledState = state
@@ -48,10 +44,9 @@ class HardwareInterface:
         f.close()
         return lines
 
-    def _updateTemperatureValue(self):
+    def getTemperature(self):
         if(not os.path.isfile(baseDir + self._plugin._settings.get(['sensorName']) + dataFile)):
-            self._temperature = "CONFIGURE SENSOR NAME 0"
-            return
+            return "CONFIGURE SENSOR NAME 0"
 
         lines = self._readTemperatureFile()
 
@@ -63,4 +58,4 @@ class HardwareInterface:
         #Find the index of t= in string
         tempPos = lines[1].find('t=')
         if tempPos != -1:
-            self._temperature = round(float(lines[1][tempPos+2:]) / 1000, 1)
+            return round(float(lines[1][tempPos+2:]) / 1000, 1)

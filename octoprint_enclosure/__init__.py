@@ -44,14 +44,10 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
             
         def startTimers(self):
             frontendInterval = self._settings.get(['frontendUpdateInterval'])
-            hardwareInterval = self._settings.get(['sensorUpdateInterval'])
 
             #Create and start the timers
-            self._frontendUpdateTimer = RepeatedTimer(frontendInterval, self.updateFrontend)
+            self._frontendUpdateTimer = RepeatedTimer(float(frontendInterval), self.updateFrontend)
             self._frontendUpdateTimer.start()
-
-            self._hardwareUpdateTimer = RepeatedTimer(hardwareInterval, self._hardwareInterface.update)
-            self._hardwareUpdateTimer.start()
 
         def on_after_startup(self):
             #Create the Hardware thread
@@ -95,15 +91,14 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
             
 	def get_settings_defaults(self):
 		return dict(
-                        sensorUpdateInterval=30,
-                        frontendUpdateInterval=5,
-                        sensorName='',
-                        ledPin=24,
-                        buttonPin=25,
-                        ledsOnAtStartup=False,
-                        ledsOnAtTimelapseStart=True,
-                        ledsOnAtPrintStart=False,
-                        ledsOffAtPrintEnd=True,
+            frontendUpdateInterval=5,
+            sensorName='',
+            ledPin=24,
+            buttonPin=25,
+            ledsOnAtStartup=False,
+            ledsOnAtTimelapseStart=True,
+            ledsOnAtPrintStart=False,
+            ledsOffAtPrintEnd=True,
 		)
         
 	def get_assets(self):
