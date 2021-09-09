@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import
 from octoprint.util import RepeatedTimer
-from .hardwareThread import HardwareThread
+from .hardwareinterface import HardwareInterface
 
 import octoprint.plugin
 
@@ -16,15 +16,14 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
 
         def __init__(self):
             self._frontendUpdateTimer = None
-            self._sensorUpdateTimer = None
-            self._hardwareThread = None
+            self._hardwareUpdateTimer = None
         
         def updateFrontend(self):
             #Receive the temperature
-            temp = self._hardwareThread.getTemperature()
+            temp = self._hardwareInterface.getTemperature()
 
             #Receive the ledstate
-            led = self._hardwareThread.getLedState()
+            led = self._hardwareInterface.getLedState()
 
             #Send data to the frontend
             self._plugin_manager.send_plugin_message(self._identifier, 
@@ -37,38 +36,44 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
         @octoprint.plugin.BlueprintPlugin.route("/toggleLedState", methods=["GET"])
         def toggleLedState(self):
             #Toggle the led state
-            self._hardwareThread.setLedState(~self._hardwareThread.getLedState())
+            self._hardwareInterface.setLedState(~self._hardwareInterface.getLedState())
             
             #Update the frontend
             self.updateFrontend()
             return ""
             
-        def startTimer(self):
+        def startTimers(self):
             frontendInterval = self._settings.get(['frontendUpdateInterval'])
+            hardwareInterval = self._settings.get(['sensorUpdateInterval'])
 
             #Create and start the timers
             self._frontendUpdateTimer = RepeatedTimer(frontendInterval, self.updateFrontend)
             self._frontendUpdateTimer.start()
 
+            self._hardwareUpdateTimer = RepeatedTimer(hardwareInterval, self._hardwareInterface.update)
+            self._hardwareUpdateTimer.start()
+
         def on_after_startup(self):
             #Create the Hardware thread
-            self._hardwareThread = HardwareThread(
+            self._hardwareInterface = HardwareInterface(
                 self,
                 int(self._settings.get(['ledPin'])),
                 int(self._settings.get(['buttonPin']))
             )
             #Turn on or off the leds, depending on the value in the settings
-            self._hardwareThread.setLedState(self._settings.get(['ledsOnAtStartup']))
+            self._hardwareInterface.setLedState(self._settings.get(['ledsOnAtStartup']))
 
             #Start the timers
-            self.startTimer()
+            self.startTimers()
 
-            #Start the thread
-            self._hardwareThread.start()
+
+            # Update the frontend
+            self._hardwareInterface.update()
+            self.updateFrontend()
 
         def shutdown(self):
             self._frontendUpdateTimer.cancel()
-            self._hardwareThread.stop()
+            self._hardwareUpdateTimer.cancel()
 
         def on_event(self, event, payload):
             #if a client connected
@@ -78,15 +83,15 @@ class EnclosurePlugin(octoprint.plugin.SettingsPlugin,
             
             #If the print is started and the leds have to be turned on
             elif((event == "PrintStarted") and self._settings.get(['ledsOnAtPrintStart'])):
-                self._hardwareThread.setLedState(True)
+                self._hardwareInterface.setLedState(True)
             
             #If the timelapse has started and the leds have to be turned on
             elif((event == "CaptureStart") and self._settings.get(['ledsOnAtTimelapseStart'])):
-                self._hardwareThread.setLedState(True)
+                self._hardwareInterface.setLedState(True)
 
             #If the print has ended (failed or just done) and the leds have to be turned off
             elif(((event == "PrintFailed") or (event == "PrintDone")) and self._settings.get(['ledsOffAtPrintEnd'])):
-                self._hardwareThread.setLedState(False)
+                self._hardwareInterface.setLedState(False)
             
 	def get_settings_defaults(self):
 		return dict(
